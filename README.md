@@ -4,7 +4,7 @@ Ce projet entièrement écrit en Bash permet d'utiliser Bitwarden CLI pour se co
 
 ## Sommaire
 
-- [Bitwarden CLI Autologger](#biswarden-cli-autologger)
+- [Bitwarden CLI Autologger](#bitwarden-cli-autologger)
   - [Sommaire](#sommaire)
   - [Avantages de cet utilitaire (pouquoi l'utiliser)](#avantages-de-cet-utilitaire-pouquoi-lutiliser)
   - [Installation](#installation)
