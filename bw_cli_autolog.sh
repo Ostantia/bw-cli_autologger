@@ -3,7 +3,7 @@ identities_create() {
 	# IDENTITES
 	Inception_Detect=0
 
-	if [[ -z "${BW_Session}" ]] || [[ $(echo "${BW_Session}" | wc -c) -lt 10 ]]; then
+	if [ -z "${BW_Session}" ] || [ $(echo "${BW_Session}" | wc -c) -lt 10 ]; then
 		tput setaf 4
 		echo -e "Lancement du autologin (ne prenez pas en compte les tokens, ils sont gérés automatiquement)."
 		tput sgr0
@@ -20,7 +20,7 @@ identities_create() {
 	BW_List=$(bw list items --session "$BW_Session")
 	if [ "$BW_List" != "" ]; then
 
-		if [[ "${Inception_Detect}" != "1" ]]; then
+		if [ "${Inception_Detect}" != "1" ]; then
 			unset BW_Session
 		fi
 
