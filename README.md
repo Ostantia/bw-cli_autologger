@@ -475,5 +475,6 @@ Dans le cas ou vous n'avez pas ajouté d'actions complémentaires dans la foncti
 ## Remerciements
 
 Merci à mes amis qui me font avancer sur mes projets en me donnant des idées et en me motivant !
-Kit!
-neutaaaaan
+
+- Kit!
+- neutaaaaan
