@@ -21,7 +21,8 @@ Ce projet entièrement écrit en Bash permet d'utiliser Bitwarden CLI pour se co
   - [Utilisation du script et authentification automatique](#utilisation-du-script-et-authentification-automatique)
     - [Utilisation de l'authentification dans de multiples TTY sans ré-authentification](#utilisation-de-lauthentification-dans-de-multiples-tty-sans-ré-authentification)
     - [Installation sur une autre machine après la première configuration](#installation-sur-une-autre-machine-après-la-première-configuration)
-    - [Connexion aux hôtes SSH configurés dans le fichier .ssh/config](#connexion-aux-hôtes-ssh-configurés-dans-le-fichier-sshconfig)
+    - [Connexion aux hôtes SSH configurés dans le fichier config](#connexion-aux-hôtes-ssh-configurés-dans-le-fichier-config)
+    - [Connexion aux hôtes SSH NON configurés](#connexion-aux-hôtes-ssh-non-configurés)
     - [Nouvelle tentative de connexion après échec](#nouvelle-tentative-de-connexion-après-échec)
     - [Déconnexion automatisée et déconnexion manuelle, les différences](#déconnexion-automatisée-et-déconnexion-manuelle-les-différences)
       - [Déconnexion par fermeture des tty](#déconnexion-par-fermeture-des-tty)
@@ -31,6 +32,8 @@ Ce projet entièrement écrit en Bash permet d'utiliser Bitwarden CLI pour se co
 ## Avantages de cet utilitaire (pouquoi l'utiliser)
 
 Bitwarden CLI Autologger vous permettra de toujours avoir vos identifians, mots de passes, configurations et clés SSH automatiqueemnt disponibles et ce de la façon la plus sécurisée possible.
+
+> *Pour plus de détails concernant l'authentification automatisée, consultez la partie "Utilisation de l'authentification dans de multiples TTY sans ré-authentification" de la documentation.*
 
 Un avantage également indéniable : Vous aurez toujours accès à la toute dernière version disponible sur votre Instance Bitwarden des différents mots de passes et configurations. Cela est assuré grâce à un job en tache de fond qui effectue une mise à jour de la base locale de Bitwarden CLI toutes les 10 secondes.
 
@@ -121,7 +124,7 @@ La façon la plus sécurisée de gérer les clés SSH de connexion et authentifi
 La méthode que je vais présenter ici n'est valable que si vous avez **exactement 3 clés SSH ou moins en tout.**
 
 > *Cette limitation est due aux configurations de base des serveurs SSH du monde entier.*
-> 
+>
 > *Ces derniers n'acceptent que 3 tentatives d'authentification par clés pour chaque connexion.*
 >
 > *Utiliser l'agent SSH uniquement dans configurations complémentaires fait que les clés seront essayées dans leur ordre d'ajout au socket de l'agent, une par une jusqu'à réussite de l'authentification, ou ttimeout de l'hôte distant. Si la bonne clé est de ce fait en 4ème position, l'authentification par cette méthode échouera toujours.*
@@ -192,9 +195,9 @@ Host test2
   HostName 192.168.1.165
   IdentityFile ~/.ssh/<NOM_DE_LA_CLE_PUBLIQUE_CORRESPONDANTE>.pub
 
-Host Alicee
+Host alicee
   User aliceinwonderland
-  HostName kaitokid.cloudyfy.fr
+  HostName alicee.example.com
   Port 2222
   IdentityFile ~/.ssh/<NOM_DE_LA_CLE_PUBLIQUE_CORRESPONDANTE>.pub
 ```
@@ -343,6 +346,18 @@ La détection de l'authentification étant basée sur ce token, sa présence est
 
 Vous pouvez, si cela n'est pas possible, utiliser le token au sein d'un fichier que vous appellerez ensuite par l'utilitaire, mais cela baisse la sécurité de l'installation et n'est pas officiellement supporté.
 
+Pour correctement utiliser cet utilitaire et toutes ses capacités, authentifiez vous d'abord dans votre session nouvellement ouverte.
+
+Puis, si vous utilisez TMUX, ouvrez une nouvelle session avec :
+
+```bash
+tmux new-session -n terminal
+```
+
+Vous remarquerez alors qu'une nouvelle authentification ne vous sera pas demandée.
+
+Ce fonctionnement est également similaire dans SCREEN.
+
 ### Installation sur une autre machine après la première configuration
 
 Une fois la première configuration effectuée (en suivant les indications de cette documentation), vous pouvez désormais simplement copier la base de l'utilitaire sans devoir reproduire toute la configuration à chaque nouvel appareil ou terminal.
@@ -361,7 +376,47 @@ source ~/.bashrc
 
 C'est tout, votre environnement est désormais synchronisé et prêt.
 
-### Connexion aux hôtes SSH configurés dans le fichier .ssh/config
+### Connexion aux hôtes SSH configurés dans le fichier config
+
+Les hôtes configurés dans votre fichier .ssh/config peuvent $etre appelés directement par le nom que vous leur avez donné, sans précision du port ou de l'utilisateur si ce dernier est donné dans la configuration.
+
+Exemple de configuration et de son utilisation :
+
+```text
+Host alicee
+  User aliceinwonderland
+  HostName alicee.example.com
+  Port 2222
+  IdentityFile ~/.ssh/<NOM_DE_LA_CLE_PUBLIQUE_CORRESPONDANTE>.pub
+```
+
+Maintenant vous pouvez vous connecter à cet hôte en tapant :
+
+```bash
+ssh alicee
+```
+
+Cela vous connectera à l'hôte configuré avec l'utlisateur configuré sur le port configuré.
+
+A noter que vous pouvez mettre plusieurs configurations pour le même hôte.
+
+Enfin, sachez que vous pouvez aussi tout à fait passer par une comnde ssh classique, et autre fait important : Toute application ou commande passant par SSH (ou son binaire) utilisera la configuration et bénéficiera de la connexion automatique.
+
+> *Par cela, il est entendu que par exemple, le clonage de repository git la méthode SSH fonctionnera également soit avec les paramètres de base, soit avce le nom donné à l'hôte distant dans la configuration. Les commandes RSYNC fonctionnerons également.*
+>
+> *Et tout cela en utilisant les clés SSH gérées coté Bitwarden.*
+
+Example :
+
+```bash
+ssh -p2222 aliceinwonderland@alicee.example.com
+```
+
+Dans cet exemple, je n'ai volontairement pas précisé la clé SSH, car cette dernière sera automatiquement utilisée par l'agent.
+
+En effet, SSH va faire le rapprochement entre ces paramètres de connexion et la configuration du fichier ".ssh/config".
+
+### Connexion aux hôtes SSH NON configurés
 
 > *A noter que ce qui suit ne concerne que la connexion par mots de passes aux hôtes non configurés dans le fichier .ssh/config lorsque l'utilisation de clés SSH est configurée sur cet utilitaire.*
 >
