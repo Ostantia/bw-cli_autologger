@@ -1,10 +1,10 @@
-# Biswarden CLI Autologger
+# Bitwarden CLI Autologger
 
 Ce projet entièrement écrit en Bash permet d'utiliser Bitwarden CLI pour se connecter automatiquement à vos différentes identitiés et pouvoir ainsi les utiliser au travers du terminal.
 
 ## Sommaire
 
-- [Biswarden CLI Autologger](#biswarden-cli-autologger)
+- [Bitwarden CLI Autologger](#biswarden-cli-autologger)
   - [Sommaire](#sommaire)
   - [Avantages de cet utilitaire (pouquoi l'utiliser)](#avantages-de-cet-utilitaire-pouquoi-lutiliser)
   - [Installation](#installation)
