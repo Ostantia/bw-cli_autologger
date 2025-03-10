@@ -1,9 +1,9 @@
-
+# shellcheck disable=SC2148
 identities_create() {
 	# IDENTITES
 	Inception_Detect=0
 
-	if [ -z "${BW_Session}" ] || [ $(echo "${BW_Session}" | wc -c) -lt 10 ]; then
+	if [ -z "${BW_Session}" ] || [ "$(echo "${BW_Session}" | wc -c)" -lt 10 ]; then
 		tput setaf 4
 		echo -e "Lancement du autologin (ne prenez pas en compte les tokens, ils sont gérés automatiquement)."
 		tput sgr0
@@ -11,6 +11,7 @@ identities_create() {
 		local Bitwarden_Email="<EMAIL_DE_CONNEXION_A_BITWARDEN>"
 		local Bitwarden_Server="<URL_DE_L_INSTANCE_BITWARDEN>"
 		bw config server "${Bitwarden_Server}"
+		# shellcheck disable=SC2155
 		export BW_Session="$(bw login "${Bitwarden_Email}" | tee /dev/tty | grep -m1 '==' | cut -d '"' -f 2)"
 		Inception_Detect=1
 	fi
@@ -65,3 +66,7 @@ identities_destroy() {
 }
 
 identities_create
+
+if [[ -n ${BW_Session} ]]; then
+	trap identities_destroy EXIT
+fi
