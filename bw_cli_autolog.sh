@@ -69,5 +69,4 @@ identities_create
 
 if [[ -n ${BW_Session} ]]; then
 	trap identities_destroy EXIT
-	trap identities_destroy SIGINT
 fi
