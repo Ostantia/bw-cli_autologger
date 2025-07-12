@@ -1,6 +1,6 @@
 # Bitwarden CLI Autologger
 
-Ce projet entièrement écrit en Bash permet d'utiliser Bitwarden CLI pour se connecter automatiquement à vos différentes identitiés et pouvoir ainsi les utiliser au travers du terminal.
+Ce projet entièrement écrit en script SH/POSIX et permet d'utiliser Bitwarden CLI pour se connecter automatiquement à vos différentes identitiés et pouvoir ainsi les utiliser au travers du terminal.
 
 ## Sommaire
 
@@ -37,11 +37,11 @@ Bitwarden CLI Autologger vous permettra de toujours avoir vos identifians, mots 
 
 Un avantage également indéniable : Vous aurez toujours accès à la toute dernière version disponible sur votre Instance Bitwarden des différents mots de passes et configurations. Cela est assuré grâce à un job en tache de fond qui effectue une mise à jour de la base locale de Bitwarden CLI toutes les 10 secondes.
 
-De plus, grâce à cet utilitaire, vous ne serez jamais dépaysé : tout les terminaux l'utilisant bénéficieront de la même configuration partout ou cet utilitaire sera installé. Une fois configuré pour la première fois, il vous suffira de recopier la même configuration de base dans tout vos fichier .bashrc et tout sera automatiqueemnt synchronisé !
+De plus, grâce à cet utilitaire, vous ne serez jamais dépaysé : tout les terminaux l'utilisant bénéficieront de la même configuration partout ou cet utilitaire sera installé. Une fois configuré pour la première fois, il vous suffira de recopier la même configuration de base dans tout vos fichiers de base des shells (.bashrc/.zshrc...) et tout sera automatiqueemnt synchronisé !
 
 ## Installation
 
-Installer Bitwarden CLI Autologger peut se faire sur tout OS Linux et MacOS utilisant Bash. (Je ne supporterai pas Windows, les principes de fonctionnement n'étant pas du tout les mêmes, et je n'aime pas PowerShell :P)
+Installer Bitwarden CLI Autologger peut se faire sur tout OS Linux et MacOS utilisant un shell compatible sh/POSIX. (Je ne supporterai pas Windows, les principes de fonctionnement n'étant pas du tout les mêmes, et je n'aime pas PowerShell :P)
 
 ### Paquets prérequis
 
@@ -49,10 +49,9 @@ Les paquets indispensables pour le bon fonctionnement de ce projet sont :
 
 - Bitwarden CLI : Téléchargez le binaire correspondant à votre situation ici : <https://bitwarden.com/fr-fr/help/cli/>
 - jq : Paquet permettant de parser du JSON, format natif de Bitwarden CLI. Ce dernier est disponible dans tout les repositories des installations de Linux.
-- Bash : Oui, ce projet est en bash uniquement. Il peut être compatible avec d'autres Shell supportant SH mais je n'en garantis pas le support. Cependant, si vous l'utilisez en tant que script et l'appelez avec la commande bash, il devrait pouvoir fonctionner dans tout les SHells.
+- Shell compatible sh/POSIX : Ce script est adapté pour tout les shells suivants les standards de base de sh/POSIX. Ce dernier est de ce fait POSIX compliant.
 - git : Pour télécharger ce projet et le mettre à jour si nécessaire.
 - wget : Pour récupérer le binaire de Bitwarden CLI depuis le site de Bitwarden.
-- tmux/screen : Ces multiplexeurs sont indispendables car ils permettent d'hériter des configurations (notamment de la variable de session) depuis la session parente les ayant appelés, ce qui est l'une des bases de fonctionnement de ce script.
 
 ### Manipulations lors de l'installation
 
@@ -74,7 +73,7 @@ Si il ne vous est pas possible de passer root, vous pouvez toujours placer ce bi
 
 Notez que cette méthode ne rendra le binaire disponible que pour votre utilisateur courant.
 
-Mise en place de la base de Bitwarden CLI Autologger :
+Mise en place de la base de Bitwarden CLI Autologger (exemple avec Bash) :
 
 ```bash
 cd /tmp/.
@@ -91,7 +90,7 @@ Il faudra cependant configurer ce dernier pour qu'il soit utilisable.
 
 ### Paramètres de base
 
-Afin de pouvoir commencer l'utilisation de ce script chardé dans le bashrc, vous devez renseigner les deux variables présentes dans la fonction **"identities_create"** :
+Afin de pouvoir commencer l'utilisation de ce script chardé dans le fichier de configuration du shell, vous devez renseigner les deux variables présentes dans la fonction **"identities_create"** :
 
 - "Bitwarden_Email" : Entrez ici votre adresse email utilisée sur l'instance bitwarden afin de vous y connecter.
 - "Bitwarden_Server" : Entrez ici l'URL complète du serveur auquel le script devra se connecter.
@@ -138,7 +137,7 @@ Dans le contenu de cette note, mettez uniquement la clé SSH, sans retour à la 
 Ensuite, allez modifier la note sécurisée créée précédemment et nommée **"identities - configs"** et ajoutez la ligne suivante :
 
 ```bash
-echo "$BW_List" | jq -r '.[] | select(.name=="<NOM_DE_LA_NOTE_CONTENANT_LA_CLE>") | .notes' | ssh-add -
+printf "%s" "$BW_List" | jq -r '.[] | select(.name=="<NOM_DE_LA_NOTE_CONTENANT_LA_CLE>") | .notes' | ssh-add -
 ```
 
 Répetez ces étapes pour chaque clé SSH que vous souhaitez ajouter à l'agent.
@@ -175,7 +174,7 @@ Tout d'abord, effectuez les étapes de configuration de l'agent SSH présentées
 Ensuite, modifiez votre note sécurisée **"identities - configs"** en ajoutant les lignes ci dessous pour chaque clé SSH publique :
 
 ```bash
-echo "$BW_List" | jq -r '.[] | select(.name=="<NOM_DE_LA_NOTE_CONTENANT_LA_CLE_PUBLIQUE>") | .notes' >"$HOME"/.ssh/<NOM_DE_LA_CLE_PUBLIQUE>.pub
+printf "%s" "$BW_List" | jq -r '.[] | select(.name=="<NOM_DE_LA_NOTE_CONTENANT_LA_CLE_PUBLIQUE>") | .notes' >"$HOME"/.ssh/<NOM_DE_LA_CLE_PUBLIQUE>.pub
 ```
 
 Pas d'inquiétude, les clés publiques peuvent être révélées et ne sont pas obligatoirement secrètes.
@@ -205,7 +204,7 @@ Host alicee
 Enfin, ajoutez la ligne ci dessous dans la note sécurisée **"identities - configs"** :
 
 ```bash
-echo "$BW_List" | jq -r '.[] | select(.name=="identities - sshconfig") | .notes' >"$HOME"/.ssh/config
+printf "%s" "$BW_List" | jq -r '.[] | select(.name=="identities - sshconfig") | .notes' >"$HOME"/.ssh/config
 ```
 
 Enfin, rechargez votre envrionnement (Ou ouvrez une nouvelle session dans le multiplexeur) :
@@ -265,8 +264,8 @@ Notez cependant qu'à cause de limitations techniques, ces derniers seront décl
 Pour cela, ajoutez le compte/mot de passe souhaité dans votre Instance Bitwarden (Pas dasn une note sécurisée, mais dans un identifiant, comme tout autre identifiant), puis ajoutez la configuration suivante dans la note sécurisée **"identities - configs"** :
 
 ```bash
-export USERNAME_<NOM_DU_COMPTE_DANS_BITWARDEN>=$(echo "$BW_List" | jq -r '.[] | select(.name=="<NOM_DU_COMPTE_DANS_BITWARDEN>") | .login.username')
-export PASSWORD_<NOM_DU_COMPTE_DANS_BITWARDEN>=$(echo "$BW_List" | jq -r '.[] | select(.name=="<NOM_DU_COMPTE_DANS_BITWARDEN>") | .login.password')
+export USERNAME_<NOM_DU_COMPTE_DANS_BITWARDEN>=$(printf "%s" "$BW_List" | jq -r '.[] | select(.name=="<NOM_DU_COMPTE_DANS_BITWARDEN>") | .login.username')
+export PASSWORD_<NOM_DU_COMPTE_DANS_BITWARDEN>=$(printf "%s" "$BW_List" | jq -r '.[] | select(.name=="<NOM_DU_COMPTE_DANS_BITWARDEN>") | .login.password')
 ```
 
 Ensuite, rechargez votre envrionnement (Ou ouvrez une nouvelle session dans le multiplexeur) :
@@ -293,11 +292,11 @@ Ensuite, en fonction de la nature de la donnée ajoutée et de ce que vous souha
 
 ```bash
 # Pour des configurations :
-echo "$BW_List" | jq -r '.[] | select(.name=="Tmux configuration") | .notes' >"$HOME"/.tmux.conf
-echo "$BW_List" | jq -r '.[] | select(.name=="gitconfig") | .notes' >"$HOME"/.gitconfig
+printf "%s" "$BW_List" | jq -r '.[] | select(.name=="Tmux configuration") | .notes' >"$HOME"/.tmux.conf
+printf "%s" "$BW_List" | jq -r '.[] | select(.name=="gitconfig") | .notes' >"$HOME"/.gitconfig
 
 # Pour des scripts :
-echo "$BW_List" | jq -r '.[] | select(.name=="identities - scripts") | .notes' >"$HOME"/.identities-scripts.sh
+printf "%s" "$BW_List" | jq -r '.[] | select(.name=="identities - scripts") | .notes' >"$HOME"/.identities-scripts.sh
 chmod 755 "$HOME"/.additionnal.sh
 source "$HOME"/.additionnal.sh
 ```
@@ -314,7 +313,7 @@ Les fichiers ainsi ajoutés sont désormais présents dans votre répertoire uti
 
 La fonction de déconnexion fournie de base est fonctionnelle et n'a pas besoin d'être modifiée dans un cas d'utilisation normal.
 
-Cependant, ci vous souhaitez que cette dernière fasse plus que ce qu'elle ne fait déjà (comme par exemple supprimer des configurations et fichiers synchronisés, ou toute autre action), vous pouvez modifier cette dernière dans le fichier ~/.bashrc.
+Cependant, ci vous souhaitez que cette dernière fasse plus que ce qu'elle ne fait déjà (comme par exemple supprimer des configurations et fichiers synchronisés, ou toute autre action), vous pouvez modifier cette dernière dans le fichier de configuration du shell.
 
 Par exemple, pour supprimer des fichiers à la déconnexion, ajoutez y la ligne suivante, après la ligne **"unset BW_Session"** :
 
@@ -322,7 +321,7 @@ Par exemple, pour supprimer des fichiers à la déconnexion, ajoutez y la ligne 
 rm -rf "$HOME"/.ssh/test1.pub
 ```
 
-Mais sachez que toute commande bash est disponible, ajoutez y ce dont vous avez besoin et pensez à recharger votre environnement pour la mise à jour de la fonction :
+Mais sachez que toute commande sh est disponible, ajoutez y ce dont vous avez besoin et pensez à recharger votre environnement pour la mise à jour de la fonction :
 
 ```bash
 source ~/.bashrc
@@ -368,7 +367,7 @@ La synchronisation étant assurée au travers du coffre Bitwarden lui même, seu
 
 Pour cela, depuis l'un de vos terminaux déjà configurés, copiez les fonctions **"identities_create"**, **"identities_destroy"** ainsi que la ligne finale appellant la fonction.
 
-Collez ensuite ces dernières à la fin de votre fichier .bashrc sur un terminal non configuré, et rechargez votre environnement :
+Collez ensuite ces dernières à la fin de votre fichier de configuration du shell sur un terminal non configuré, et rechargez votre environnement :
 
 ```bash
 source ~/.bashrc

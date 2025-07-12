@@ -1,21 +1,22 @@
-#!/bin/sh
-
+# shellcheck disable=SC2148
 identities_create() {
 	# IDENTITES
 	Inception_Detect=0
 
 	if [ -z "${BW_Session}" ] || [ "$(echo "${BW_Session}" | wc -c)" -lt 10 ]; then
 		tput setaf 4
-		echo "Lancement du autologin (ne prenez pas en compte les tokens, ils sont gérés automatiquement)."
+		echo -e "Lancement du autologin (ne prenez pas en compte les tokens, ils sont gérés automatiquement)."
 		tput sgr0
 		identities_destroy
-		Bitwarden_Email="<EMAIL_DE_CONNEXION_A_BITWARDEN>"
-		Bitwarden_Server="<URL_DE_L_INSTANCE_BITWARDEN>"
+		local Bitwarden_Email="<EMAIL_DE_CONNEXION_A_BITWARDEN>"
+		local Bitwarden_Server="<URL_DE_L_INSTANCE_BITWARDEN>"
 		bw config server "${Bitwarden_Server}"
 		# shellcheck disable=SC2155
 		export BW_Session="$(bw login "${Bitwarden_Email}" | tee /dev/tty | grep -m1 '==' | cut -d '"' -f 2)"
 		Inception_Detect=1
 	fi
+
+	local BW_List
 
 	BW_List=$(bw list items --session "$BW_Session")
 	if [ "$BW_List" != "" ]; then
@@ -25,22 +26,20 @@ identities_create() {
 		fi
 
 		# shellcheck disable=SC2009
-		if [ "$(ps -a | grep 'sh -c while true; do sleep 10; bw sync -f; done' | grep -cv 'grep')" = "0" ]; then
+		if [ "$(ps -aux | grep 'sh -c while true; do sleep 10; bw sync -f; done' | grep -cv 'grep')" == "0" ]; then
 			nohup sh -c 'while true; do sleep 10; bw sync -f; done' >/dev/null 2>&1 &
 		fi
 
 		tput setaf 4
-		echo ""
-		echo "Bitwarden connecté, mise en place des identités..."
+		echo -e "\nBitwarden connecté, mise en place des identités..."
 		tput sgr0
 
 		eval "$(ssh-agent)"
-		#trap 'kill $SSH_AGENT_PID' EXIT
+		trap 'kill $SSH_AGENT_PID' EXIT
 
-		# shellcheck disable=SC3037
-		printf "%s" "$BW_List" | jq -r '.[] | select(.name=="identities - configs") | .notes' >"$HOME"/.identities-loaded.sh
+		echo "$BW_List" | jq -r '.[] | select(.name=="identities - configs") | .notes' >"$HOME"/.identities-loaded.sh
 		chmod 700 "$HOME"/.identities-loaded.sh
-		. "${HOME}"/.identities-loaded.sh
+		source "${HOME}"/.identities-loaded.sh
 
 		unset BW_List
 
@@ -68,6 +67,6 @@ identities_destroy() {
 
 identities_create
 
-if [ ! -z "${BW_Session}" ]; then
+if [[ -n ${BW_Session} ]]; then
 	trap identities_destroy EXIT
 fi
