@@ -5,7 +5,19 @@ identities_create() {
 	Inception_Detect=0
 
 	if [ -z "${BW_Session}" ] || [ "$(echo "${BW_Session}" | wc -c)" -lt 10 ]; then
+		Local_Version="2.0.1"
+		Latest_Version=$(curl https://gitea.cloudyfy.fr/Siphonight/bw-cli_autologger/src/branch/main/bw_cli_autolog.sh | grep "Version" | cut -d '"' -f 2)
+		if [ "${Local_Version}" != "${Latest_Version}" ]; then
+			tput setaf 1
+			echo "Votre version de l'utilitaire n'est pas à jour."
+			echo "Version locale : ${Local_Version} | Dernière version : ${Latest_Version}"
+			echo "Récupérez la dernière version sur https://gitea.cloudyfy.fr/Siphonight/bw-cli_autologger ."
+		else
+			tput setaf 2
+			echo "Votre utilitaire est à jour avec la dernière version ! Happy Connect =)"
+		fi
 		tput setaf 4
+		echo "Bitwarden CLI autologger version ${Local_Version}"
 		echo "Lancement du autologin (ne prenez pas en compte les tokens, ils sont gérés automatiquement)."
 		tput sgr0
 		identities_destroy
@@ -17,8 +29,8 @@ identities_create() {
 		Inception_Detect=1
 	fi
 
-	BW_List=$(bw list items --session "$BW_Session")
-	if [ "$BW_List" != "" ]; then
+	BW_List=$(bw list items --session "${BW_Session}")
+	if [ "${BW_List}" != "" ]; then
 
 		if [ "${Inception_Detect}" != "1" ]; then
 			unset BW_Session
@@ -38,8 +50,9 @@ identities_create() {
 		#trap 'kill $SSH_AGENT_PID' EXIT
 
 		# shellcheck disable=SC3037
-		printf "%s" "$BW_List" | jq -r '.[] | select(.name=="identities - configs") | .notes' >"$HOME"/.identities-loaded.sh
-		chmod 700 "$HOME"/.identities-loaded.sh
+		printf "%s" "${BW_List}" | jq -r '.[] | select(.name=="identities - configs") | .notes' >"${HOME}"/.identities-loaded.sh
+		chmod 700 "${HOME}"/.identities-loaded.sh
+		# shellcheck disable=SC1091
 		. "${HOME}"/.identities-loaded.sh
 
 		unset BW_List
@@ -68,6 +81,6 @@ identities_destroy() {
 
 identities_create
 
-if [ ! -z "${BW_Session}" ]; then
+if [ -n "${BW_Session}" ]; then
 	trap identities_destroy EXIT
 fi
