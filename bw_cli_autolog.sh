@@ -6,7 +6,7 @@ identities_create() {
 
 	if [ -z "${BW_Session}" ] || [ "$(echo "${BW_Session}" | wc -c)" -lt 10 ]; then
 		Local_Version="2.0.1"
-		Latest_Version=$(curl https://gitea.cloudyfy.fr/Siphonight/bw-cli_autologger/src/branch/main/bw_cli_autolog.sh | grep "Version" | cut -d '"' -f 2)
+		Latest_Version=$(curl -s "https://gitea.cloudyfy.fr/Siphonight/bw-cli_autologger/src/branch/main/bw_cli_autolog.sh" | grep -m1 "Local_Version" | cut -d ';' -f 2 | cut -d '&' -f 1)
 		if [ "${Local_Version}" != "${Latest_Version}" ]; then
 			tput setaf 1
 			echo "Votre version de l'utilitaire n'est pas à jour."
