@@ -5,7 +5,7 @@ identities_create() {
 	Inception_Detect=0
 
 	if [ -z "${BW_Session}" ] || [ "$(echo "${BW_Session}" | wc -c)" -lt 10 ]; then
-		Local_Version="2.0.1"
+		Local_Version="2.0.2"
 		Latest_Version=$(curl -s "https://gitea.cloudyfy.fr/Siphonight/bw-cli_autologger/src/branch/main/bw_cli_autolog.sh" | grep -m1 "Local_Version" | cut -d ';' -f 2 | cut -d '&' -f 1)
 		if [ "${Local_Version}" != "${Latest_Version}" ]; then
 			tput setaf 1
@@ -37,7 +37,7 @@ identities_create() {
 		fi
 
 		# shellcheck disable=SC2009
-		if [ "$(ps -a | grep 'sh -c while true; do sleep 10; bw sync -f; done' | grep -cv 'grep')" = "0" ]; then
+		if [ "$(ps -ax | grep 'sh -c while true; do sleep 10; bw sync -f; done' | grep -cv 'grep')" = "0" ]; then
 			nohup sh -c 'while true; do sleep 10; bw sync -f; done' >/dev/null 2>&1 &
 		fi
 
