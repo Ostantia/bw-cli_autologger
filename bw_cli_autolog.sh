@@ -5,7 +5,7 @@ identities_create() {
 	Inception_Detect=0
 
 	if [ -z "${BW_Session}" ] || [ "$(echo "${BW_Session}" | wc -c)" -lt 10 ]; then
-		Local_Version="2.0.2"
+		Local_Version="2.1.2"
 		Latest_Version=$(curl -s "https://gitea.cloudyfy.fr/Siphonight/bw-cli_autologger/src/branch/main/bw_cli_autolog.sh" | grep -m1 "Local_Version" | cut -d ';' -f 2 | cut -d '&' -f 1)
 		if [ "${Local_Version}" != "${Latest_Version}" ]; then
 			tput setaf 1
@@ -47,7 +47,6 @@ identities_create() {
 		tput sgr0
 
 		eval "$(ssh-agent)"
-		#trap 'kill $SSH_AGENT_PID' EXIT
 
 		# shellcheck disable=SC3037
 		printf "%s" "${BW_List}" | jq -r '.[] | select(.name=="identities - configs") | .notes' >"${HOME}"/.identities-loaded.sh
@@ -83,4 +82,6 @@ identities_create
 
 if [ -n "${BW_Session}" ]; then
 	trap identities_destroy EXIT
+else
+	trap "kill $SSH_AGENT_PID && echo test" EXIT
 fi
