@@ -2,10 +2,12 @@
 
 identities_create() {
 	# IDENTITES
+	Bitwarden_Email="<EMAIL_DE_CONNEXION_A_BITWARDEN>"
+	Bitwarden_Server="<URL_DE_L_INSTANCE_BITWARDEN>"
 	Inception_Detect=0
 
-	if [ -z "${BW_Session}" ] || [ "$(echo "${BW_Session}" | wc -c)" -lt 10 ]; then
-		Local_Version="2.1.2"
+	if [ -z "${BW_Session}" ] || [ "${#BW_Session}" -lt 10 ]; then
+		Local_Version="2.2.3"
 		Latest_Version=$(curl -s "https://gitea.cloudyfy.fr/Siphonight/bw-cli_autologger/src/branch/main/bw_cli_autolog.sh" | grep -m1 "Local_Version" | cut -d ';' -f 2 | cut -d '&' -f 1)
 		if [ "${Local_Version}" != "${Latest_Version}" ]; then
 			tput setaf 1
@@ -21,8 +23,6 @@ identities_create() {
 		echo "Lancement du autologin (ne prenez pas en compte les tokens, ils sont gérés automatiquement)."
 		tput sgr0
 		identities_destroy
-		Bitwarden_Email="<EMAIL_DE_CONNEXION_A_BITWARDEN>"
-		Bitwarden_Server="<URL_DE_L_INSTANCE_BITWARDEN>"
 		bw config server "${Bitwarden_Server}"
 		# shellcheck disable=SC2155
 		export BW_Session="$(bw login "${Bitwarden_Email}" | tee /dev/tty | grep -m1 '==' | cut -d '"' -f 2)"
@@ -66,14 +66,17 @@ identities_create() {
 identities_destroy() {
 	tput setaf 4
 	echo "Déconnexion des identités en cours..."
-	tput sgr0
 
 	bw logout
 	ssh-add -D
 	pkill ssh-agent
+	echo "Suppression des fichiers générés..."
+	# shellcheck disable=SC2016
+	grep -in 'printf "%s" "$BW_List"' "${HOME}"/.identities-loaded.sh | grep ">" | cut -d ">" -f 2 | sed -e "s,\~,${HOME},g ; s,\"\$HOME\",${HOME},g" | while IFS= read -r each; do
+		rm -rf "${each}"
+	done
 	unset BW_Session
 
-	tput setaf 4
 	echo "Déconnexion des identités terminée"
 	tput sgr0
 }
@@ -83,5 +86,5 @@ identities_create
 if [ -n "${BW_Session}" ]; then
 	trap identities_destroy EXIT
 else
-	trap "kill $SSH_AGENT_PID && echo test" EXIT
+	trap 'kill $SSH_AGENT_PID' EXIT
 fi
