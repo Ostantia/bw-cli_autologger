@@ -7,7 +7,7 @@ identities_create() {
 	Inception_Detect=0
 
 	if [ -z "${BW_Session}" ] || [ "${#BW_Session}" -lt 10 ]; then
-		Local_Version="2.2.3"
+		Local_Version="2.2.4"
 		Latest_Version=$(curl -s "https://gitea.cloudyfy.fr/Siphonight/bw-cli_autologger/src/branch/main/bw_cli_autolog.sh" | grep -m1 "Local_Version" | cut -d ';' -f 2 | cut -d '&' -f 1)
 		if [ "${Local_Version}" != "${Latest_Version}" ]; then
 			tput setaf 1
@@ -72,7 +72,7 @@ identities_destroy() {
 	pkill ssh-agent
 	echo "Suppression des fichiers générés..."
 	# shellcheck disable=SC2016
-	grep -in 'printf "%s" "$BW_List"' "${HOME}"/.identities-loaded.sh | grep ">" | cut -d ">" -f 2 | sed -e "s,\~,${HOME},g ; s,\"\$HOME\",${HOME},g" | while IFS= read -r each; do
+	grep -in "printf.*\"\%s\".*\"\$BW_List\"" "${HOME}"/.identities-loaded.sh | grep ">" | cut -d ">" -f 2 | sed -e "s,\~,${HOME},g ; s,\"\$HOME\",${HOME},g" | while IFS= read -r each; do
 		rm -rf "${each}"
 	done
 	unset BW_Session
